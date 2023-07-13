@@ -15,13 +15,13 @@ const game = {
     /** @type {Number} defines the speed for each game update */
     speed: 1,
     /** @type {Number} each time eating an apple modify the speed by this amount */
-    speedModifier: 0.99,
+    speedModifier: 0.991,
     /** @type {Number} current player's score */
     score: 0,
     /** @type {[Number,Number]} movment vector of the player */
     playerDirection: [1, 0],
     /** @type {Boolean} toggles bonus task - can pass throw walls */
-    toggleWalls: true,
+    toggleWalls: false,
     /** @type {Boolean} toggles bonus task - can pass throw walls */
     isRunning: false,
     /** @type {Block[]} */
@@ -34,9 +34,9 @@ const game = {
  * Triggers the game start
  * @param {HTMLButtonElement} btn 
  */
-function startGame(btn) {
+function startGame() {
 
-    btn.classList.remove("glowup");
+    document.querySelector(".startBtn").classList.remove("glowup");
     //if already running - exit
     if (game.isRunning)
         return;
@@ -57,22 +57,36 @@ function resetGame() {
     generateApple();
 }
 
+let directionLock = false;
 window.addEventListener("keydown", (e) => {
     //when right press & older movement is up/down
-    if (e.key == "ArrowRight" && game.playerDirection[0] == 0)
+    if (e.key == "ArrowRight" && game.playerDirection[0] == 0 && !directionLock) {
         game.playerDirection = [1, 0]
+        directionLock = true
+    }
 
     //when left press & older movement is up/down
-    if (e.key == "ArrowLeft" && game.playerDirection[0] == 0)
+    if (e.key == "ArrowLeft" && game.playerDirection[0] == 0 && !directionLock) {
         game.playerDirection = [-1, 0]
+        directionLock = true
+    }
 
     //when up press & older movement is left/right
-    if (e.key == "ArrowUp" && game.playerDirection[1] == 0)
+    if (e.key == "ArrowUp" && game.playerDirection[1] == 0 && !directionLock) {
+
         game.playerDirection = [0, -1]
+        directionLock = true
+    }
 
     //when up press & older movement is left/right
-    if (e.key == "ArrowDown" && game.playerDirection[1] == 0)
+    if (e.key == "ArrowDown" && game.playerDirection[1] == 0 && !directionLock) {
         game.playerDirection = [0, 1]
+        directionLock = true
+    }
+
+    if (e.key == " ")
+        startGame();
+
 })
 
 /**
@@ -96,9 +110,11 @@ function gameLoop() {
 let lastUpdate = new Date()
 function gameUpdate() {
     //calc game update according to game speed, wait for the current time to update game
-    if (~~(new Date()) < ~~(lastUpdate) + game.speed * 400)
+    if (~~(new Date()) < ~~(lastUpdate) + game.speed * 350)
         return false;
     lastUpdate = new Date()
+
+    directionLock = false;
 
     //get the head of the snake e.g. the last block that added to it
     const snakeHead = game.snake[game.snake.length - 1];
@@ -206,8 +222,6 @@ function drawGame() {
     }
     snakePart.drawHead(ctx, game.playerDirection)
 
-    game.apple.drawApple(ctx);
-
 
     ctx.font = "5vmin Arial black";
     ctx.lineWidth = 2
@@ -215,4 +229,11 @@ function drawGame() {
 
     ctx.fillStyle = "rgba(255,255,255,0.5)"
     ctx.fillText("score: " + game.score * 10, 10, 50)
+}
+
+function toggleWalls() {
+    game.toggleWalls = !game.toggleWalls;
+    document.querySelector(".gameFilter").classList.toggle("walls");
+    document.querySelector(".optionBtn").classList.toggle("off");
+
 }
